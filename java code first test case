@@ -1,0 +1,83 @@
+First test case code:
+
+
+import java.math.BigInteger;
+import java.util.*;
+
+public class Main {
+
+    // Decode the value y from its base to a decimal (base 10) integer
+    public static BigInteger decodeValue(String value, int base) {
+        try {
+            return new BigInteger(value, base);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid value for the given base: " + value + " in base " + base, e);
+        }
+    }
+
+    // Calculate the Lagrange coefficient for each x
+    public static BigInteger lagrangeCoefficient(int x, List<Integer> xValues, int i) {
+        BigInteger numerator = BigInteger.ONE;
+        BigInteger denominator = BigInteger.ONE;
+        
+        for (int j = 0; j < xValues.size(); j++) {
+            if (i != j) {
+                numerator = numerator.multiply(BigInteger.valueOf(x - xValues.get(j)));
+                denominator = denominator.multiply(BigInteger.valueOf(xValues.get(i) - xValues.get(j)));
+            }
+        }
+        
+        return numerator.divide(denominator);
+    }
+
+    // Calculate the secret (constant term of the polynomial)
+    public static BigInteger findSecret(List<Integer> xValues, List<BigInteger> yValues, int k) {
+        BigInteger secret = BigInteger.ZERO;
+        
+        // Lagrange interpolation to find the constant term (c)
+        for (int i = 0; i < k; i++) {
+            BigInteger coeff = lagrangeCoefficient(0, xValues, i); // Set x = 0 to get constant term
+            secret = secret.add(yValues.get(i).multiply(coeff));
+        }
+        
+        return secret;
+    }
+
+    public static void main(String[] args) {
+        // Number of roots (n) and minimum number required to solve (k)
+        int n = 4;
+        int k = 3;
+        
+        // Roots from the JSON (x, y pairs)
+        Map<Integer, String> rootData = Map.of(
+            1, "4",          // Base 10
+            2, "111",        // Base 2
+            3, "12",         // Base 10
+            6, "213"         // Base 4 (Corrected base here)
+        );
+
+        // Base for each x value
+        List<Integer> bases = List.of(10, 2, 10, 4); // Correct base for "213" (4 instead of 2)
+        
+        // Step 1: Decode the y values from their respective bases
+        List<BigInteger> yValues = new ArrayList<>();
+        List<Integer> xValues = new ArrayList<>();
+        
+        int index = 0;
+        for (Map.Entry<Integer, String> entry : rootData.entrySet()) {
+            int x = entry.getKey();
+            String y = entry.getValue();
+            int base = bases.get(index++);
+            xValues.add(x);
+            yValues.add(decodeValue(y, base)); // Decode value based on its base
+        }
+        
+        // Step 2: Use Lagrange Interpolation to find the secret (constant term of the polynomial)
+        BigInteger secret = findSecret(xValues.subList(0, k), yValues.subList(0, k), k);
+        
+        // Output the secret
+        System.out.println("Reconstructed Secret: " + secret);
+    }
+}
+
+
