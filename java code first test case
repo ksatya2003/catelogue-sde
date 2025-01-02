@@ -79,5 +79,5 @@ public class Main {
         System.out.println("Reconstructed Secret: " + secret);
     }
 }
-
+OUTPUT: Reconstructed Secret: 3
 
